@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prism3D Pro Studio - Image to 3D Smooth Printable Model Converter</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>">
+  <style>
+/* Additional Dropzone and Action Button styles */
+.btn-browse {
+  margin-top: 10px;
+  background: var(--accent-gradient, linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%));
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  transition: all 0.2s ease;
+}
+.btn-browse:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+}
+.preview-name-tag {
+  font-size: 11px;
+  color: #fff;
+  font-weight: 600;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+  </style>
+</head>
+<body>
+  <!-- Header Navbar -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <div class="brand-title-row">
+          <span class="brand-title">Prism3D Studio</span>
+          <span class="brand-tag">PRO</span>
+        </div>
+        <span class="brand-subtitle">AI Elevation • Full Color • 100% Watertight Slicer Ready</span>
+      </div>
+    </div>
+
+    <div class="header-center-badge">
+      <div class="pulse-dot"></div>
+      <span>Compatible: Bambu Studio • PrusaSlicer • Cura • Blender</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Dark / White Background Switcher -->
+      <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark / White Background">
+        <span class="theme-toggle-icon" id="theme-icon">☀️</span>
+        <span id="theme-text">Light Mode</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Studio -->
+  <main class="studio-main">
+    <!-- Left Panel: Input & Controls -->
+    <aside class="studio-panel">
+      <!-- Section 1: Upload Image -->
+      <section>
+        <div class="panel-section-title">
+          <span class="panel-title-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Upload Your Image
+          </span>
+          <span class="panel-title-pill">Drop or Browse</span>
+        </div>
+
+        <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp,image/bmp" style="display: none;">
+
+        <div class="dropzone-card" id="dropzone">
+          <div class="dropzone-icon-circle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="dropzone-headline">Drag & Drop Image Here</div>
+          <div class="dropzone-subtext">Photos, anime, cartoons, drawings, blueprints (or Ctrl+V)</div>
+          <button type="button" class="btn-browse" id="browse-btn">📁 Browse Computer</button>
+          <div class="dropzone-badges" style="margin-top: 14px;">
+            <span class="format-badge">PNG</span>
+            <span class="format-badge">JPG</span>
+            <span class="format-badge">WEBP</span>
+            <span class="format-badge">BMP</span>
+          </div>
+        </div>
+
+        <div class="active-preview-box" id="preview-container">
+          <img class="active-preview-img" id="preview-img" src="" alt="Active Input">
+          <div class="preview-overlay-header">
+            <span class="preview-chip preview-name-tag" id="preview-name">Active Image</span>
+            <button class="preview-remove-btn" id="remove-img-btn" title="Remove / Choose Different Image">✕</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: 1-Click Presets -->
+      <section>
+        <div class="panel-section-title">
+          <span class="panel-title-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Quick Presets
+          </span>
+          <span class="panel-title-pill">1-Click Test</span>
+        </div>
+        <div class="presets-grid" id="sample-grid">
+          <!-- Dynamically populated by app.js (No auto-conversion) -->
+        </div>
+      </section>
+
+      <!-- Section 3: Conversion Profile -->
+      <section>
+        <div class="panel-section-title">
+          <span class="panel-title-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Conversion Profile
+          </span>
+        </div>
+
+        <div class="profiles-list">
+          <div class="profile-card active" data-mode="anime_cartoon">
+            <span class="profile-icon">🎨</span>
+            <div class="profile-content">
+              <div class="profile-name">Anime & Cartoon Figurine</div>
+              <div class="profile-desc">Volumetric dome inflation, rounded toy shape</div>
+            </div>
+            <span class="profile-check">✓</span>
+          </div>
+
+          <div class="profile-card" data-mode="blueprint">
+            <span class="profile-icon">📐</span>
+            <div class="profile-content">
+              <div class="profile-name">Blueprint & Schematic</div>
+              <div class="profile-desc">Solid extruded CAD walls with flat/beveled tops</div>
+            </div>
+            <span class="profile-check">✓</span>
+          </div>
+
+          <div class="profile-card" data-mode="sketch_lineart">
+            <span class="profile-icon">✏️</span>
+            <div class="profile-content">
+              <div class="profile-name">Sketch & Line Art</div>
+              <div class="profile-desc">Embossed pencil graphite & ink ridges</div>
+            </div>
+            <span class="profile-check">✓</span>
+          </div>
+
+          <div class="profile-card" data-mode="photo_relief">
+            <span class="profile-icon">📷</span>
+            <div class="profile-content">
+              <div class="profile-name">Photo & Bas-Relief</div>
+              <div class="profile-desc">Multi-scale continuous tone sculpture</div>
+            </div>
+            <span class="profile-check">✓</span>
+          </div>
+
+          <div class="profile-card" data-mode="lithophane">
+            <span class="profile-icon">💡</span>
+            <div class="profile-content">
+              <div class="profile-name">Lithophane (Backlit)</div>
+              <div class="profile-desc">Inverse density for translucent 3D prints</div>
+            </div>
+            <span class="profile-check">✓</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Parameters & Sliders -->
+      <section>
+        <div class="panel-section-title">
+          <span class="panel-title-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            Print & Mesh Parameters
+          </span>
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span>Relief Elevation / Depth</span>
+            <span class="param-badge" id="val-height">16mm</span>
+          </div>
+          <input type="range" class="styled-range" id="slider-height" min="2" max="50" step="1" value="16">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span>Solid Base Thickness</span>
+            <span class="param-badge" id="val-base">3mm</span>
+          </div>
+          <input type="range" class="styled-range" id="slider-base" min="1" max="15" step="0.5" value="3">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span>Physical Model Width</span>
+            <span class="param-badge" id="val-width">100mm</span>
+          </div>
+          <input type="range" class="styled-range" id="slider-width" min="30" max="250" step="5" value="100">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span>Surface Smoothness</span>
+            <span class="param-badge" id="val-smooth">1.2x</span>
+          </div>
+          <input type="range" class="styled-range" id="slider-smooth" min="0.2" max="3.0" step="0.1" value="1.2">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span>Mesh Topology Grid</span>
+          </div>
+          <select id="select-resolution" class="styled-select">
+            <option value="160">Fast Interactive (160 × 160)</option>
+            <option value="256" selected>Balanced Studio (256 × 256)</option>
+            <option value="384">High Precision 3D Print (384 × 384)</option>
+            <option value="512">Ultra Definition (512 × 512)</option>
+          </select>
+        </div>
+
+        <!-- Toggles -->
+        <div class="switch-row">
+          <span>Invert Elevation (Engraving)</span>
+          <label class="ios-switch">
+            <input type="checkbox" id="toggle-invert">
+            <span class="ios-slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <span>Dual-Sided Figurine (Front & Back)</span>
+          <label class="ios-switch">
+            <input type="checkbox" id="toggle-dual">
+            <span class="ios-slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <span>Curved Arc (Lithophane Lamp)</span>
+          <label class="ios-switch">
+            <input type="checkbox" id="toggle-curve">
+            <span class="ios-slider"></span>
+          </label>
+        </div>
+
+        <button class="convert-action-btn" id="convert-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span id="convert-btn-text">⚡ Generate 3D Model</span>
+        </button>
+      </section>
+    </aside>
+
+    <!-- Center Viewport: Three.js 3D View -->
+    <div class="viewport-area">
+      <div id="three-canvas-container"></div>
+
+      <!-- Floating Toolbar Overlay -->
+      <div class="viewport-floating-nav">
+        <!-- Material Shaders -->
+        <div class="floating-pill-group">
+          <button class="vp-tool-btn active" data-material="color" title="Full Color Original Texture">🎨 Full Color</button>
+          <button class="vp-tool-btn" data-material="clay" title="Sculptor Matte Clay">🏺 Clay</button>
+          <button class="vp-tool-btn" data-material="gold" title="Metallic Gold Reflection">✨ Gold</button>
+          <button class="vp-tool-btn" data-material="slicer" title="Simulated Slicer Layer Lines">🖨️ Slicer</button>
+          <button class="vp-tool-btn" data-material="wireframe" title="Mesh Wireframe Topology">🕸️ Wire</button>
+        </div>
+
+        <!-- Camera & Tools -->
+        <div class="floating-pill-group">
+          <button class="vp-tool-btn" data-view="isometric" title="Isometric View">🧊 Iso</button>
+          <button class="vp-tool-btn" data-view="top" title="Top View">⬇️ Top</button>
+          <button class="vp-tool-btn" data-view="front" title="Front View">👁️ Front</button>
+          <button class="vp-tool-btn active" id="btn-turntable" title="Toggle Auto-Rotation">🔄 Rotate</button>
+          <button class="vp-tool-btn active" id="btn-grid" title="Toggle 200x200mm Print Bed">📏 Bed</button>
+        </div>
+      </div>
+
+      <!-- Mouse Help Pill -->
+      <div class="viewport-instructions-pill">
+        <span>🖱️ Left-Click: 360° Rotate</span>
+        <span>•</span>
+        <span>Right-Click: Pan</span>
+        <span>•</span>
+        <span>Scroll: Zoom</span>
+      </div>
+
+      <!-- Loading Curtain Overlay -->
+      <div class="viewport-loading-curtain" id="loading-overlay">
+        <div class="curtain-spinner"></div>
+        <div class="curtain-title">Constructing 3D Model...</div>
+        <div class="curtain-subtext" id="loading-subtext">Generating watertight solid manifold mesh...</div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Diagnostics & Export -->
+    <aside class="studio-panel studio-panel-right">
+      <!-- 3D Print Health Card -->
+      <section>
+        <div class="panel-section-title">
+          <span class="panel-title-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Print Diagnostics
+          </span>
+          <span class="panel-title-pill">Real-time</span>
+        </div>
+
+        <div class="diag-card">
+          <div class="diag-row">
+            <span class="diag-label">Mesh Health</span>
+            <span class="diag-val" id="stat-status">
+              <span class="health-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                100% Watertight
+              </span>
+            </span>
+          </div>
+
+          <div class="diag-row">
+            <span class="diag-label">Triangles (Faces)</span>
+            <span class="diag-val" id="stat-triangles">--</span>
+          </div>
+
+          <div class="diag-row">
+            <span class="diag-label">Vertices</span>
+            <span class="diag-val" id="stat-vertices">--</span>
+          </div>
+
+          <div class="diag-row">
+            <span class="diag-label">Dimensions (W × L × H)</span>
+            <span class="diag-val" id="stat-dims">--</span>
+          </div>
+
+          <div class="diag-row">
+            <span class="diag-label">Estimated Volume</span>
+            <span class="diag-val" id="stat-volume">--</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Multi-Format Downloads -->
+      <section>
+        <div class="panel-section-title">
+          <span class="panel-title-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export 3D Files
+          </span>
+          <span class="panel-title-pill">Direct Slicer Download</span>
+        </div>
+
+        <div class="downloads-grid">
+          <button class="export-card-btn featured-stl" data-format="stl" title="Standard binary STL for all 3D printers">
+            <span class="fmt-badge">.STL</span>
+            <span class="fmt-desc">FDM & SLA Printing</span>
+          </button>
+
+          <button class="export-card-btn featured-glb" data-format="glb" title="Full-color GLB format with embedded textures">
+            <span class="fmt-badge">.GLB</span>
+            <span class="fmt-desc">Full Color 3D</span>
+          </button>
+
+          <button class="export-card-btn" data-format="obj" title="Wavefront OBJ format with vertex colors">
+            <span class="fmt-badge">.OBJ</span>
+            <span class="fmt-desc">Color & CAD</span>
+          </button>
+
+          <button class="export-card-btn" data-format="ply" title="Polygon format with explicit RGB vertex colors">
+            <span class="fmt-badge">.PLY</span>
+            <span class="fmt-desc">Stratasys / Mimaki</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Slicer Recommendations -->
+      <section>
+        <div class="panel-section-title">
+          <span class="panel-title-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Slicer Profiles
+          </span>
+        </div>
+
+        <div class="slicer-card">
+          <div class="slicer-card-title">💡 Pro 3D Printing Recommendations</div>
+          <p><strong>FDM Printing:</strong> 0.12 - 0.16mm layer height, 15% Gyroid infill. The solid flat base plate bonds directly to PEI beds without brims or rafts.</p>
+          <br>
+          <p><strong>Multi-Color:</strong> Bambu Lab AMS or Prusa MMU can colorize by height range or load the colored .OBJ/.GLB directly in Bambu Studio / OrcaSlicer.</p>
+          <div class="slicer-chip-row">
+            <span class="slicer-chip">Bambu Studio</span>
+            <span class="slicer-chip">PrusaSlicer</span>
+            <span class="slicer-chip">OrcaSlicer</span>
+            <span class="slicer-chip">Cura</span>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Vendor Three.js (Loads local vendor with CDN fallback) -->
+  <script src="/static/vendor/three.min.js"></script>
+  <script>if (typeof THREE === 'undefined') document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');</script>
+  <script src="/static/vendor/OrbitControls.js"></script>
+  <script>if (typeof THREE === 'undefined' || typeof THREE.OrbitControls === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');</script>
+  <script src="/static/vendor/GLTFLoader.js"></script>
+  <script>if (typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"><\/script>');</script>
+
+  <!-- App Engine Scripts -->
+  <script src="/static/js/viewer.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
